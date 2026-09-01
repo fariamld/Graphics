@@ -109,13 +109,13 @@ void drawSun()
 {
     // Warm yellow daytime glow
     glColor4f(1.0f, 0.90f, 0.20f, 0.10f);
-    drawCircle(640.0f, 420.0f, 100.0f, 60);
+    drawCircle(640.0f, 550.0f, 100.0f, 60);
 
     glColor4f(1.0f, 0.92f, 0.25f, 0.18f);
-    drawCircle(640.0f, 420.0f, 75.0f, 60);
+    drawCircle(640.0f, 550.0f, 75.0f, 60);
 
     glColor3f(1.0f, 0.75f, 0.05f);
-    drawCircle(640.0f, 420.0f, 50.0f, 60);
+    drawCircle(640.0f, 550.0f, 50.0f, 60);
 }
 
 
