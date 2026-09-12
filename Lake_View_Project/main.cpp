@@ -3,21 +3,24 @@
 
 #define PI 3.14159265f
 
-// ============================================================
 // ANIMATION VARIABLES
-// ============================================================
 
-float carX1 = -220.0f;
-float carX2 = 500.0f;
-float carX3 = 1050.0f;
+float carX1 = -300.0f;
+float carX2 = 1500.0f;
+float carX3 = 700.0f;
 
 float carSpeed1 = 2.2f;
-float carSpeed2 = 1.5f;
-float carSpeed3 = 2.8f;
+float carSpeed2 = 1.8f;
+float carSpeed3 = 2.5f;
 
 float waterMove = 0.0f;
 
-// Cloud animation values.
+// DAY / NIGHT TRANSITION
+float nightAmount = 0.0f;
+float nightDirection = 1.0f;
+float nightSpeed = 0.0025f;
+
+ // Cloud animation values.
 float cloudMove = 0.0f;
 float cloudSpeed = 0.6f;
 
@@ -31,9 +34,7 @@ float bridgeCarSpeed2 = 1.3f;
 float bridgeCarSpeed3 = 1.6f;
 
 
-// ============================================================
 // BASIC SHAPES
-// ============================================================
 
 void drawCircle(float cx, float cy, float r, int segments)
 {
@@ -77,51 +78,69 @@ void drawEllipse(float cx, float cy,
 }
 
 
-// ============================================================
 // SKY
-// ============================================================
 
 void drawBackgroundSky()
 {
+    float dayR = 0.53f;
+    float dayG = 0.81f;
+    float dayB = 0.98f;
+
+    float nightR = 0.025f;
+    float nightG = 0.045f;
+    float nightB = 0.12f;
+
+    float r = dayR * (1.0f - nightAmount) + nightR * nightAmount;
+    float g = dayG * (1.0f - nightAmount) + nightG * nightAmount;
+    float b = dayB * (1.0f - nightAmount) + nightB * nightAmount;
+
+    glColor3f(r, g, b);
+
     glBegin(GL_QUADS);
-
-    // Top: friend-style daytime sky
-    glColor3f(0.53f, 0.81f, 0.98f);
-
     glVertex2f(0.0f, 720.0f);
     glVertex2f(1280.0f, 720.0f);
-
-    // Bottom: same clear blue palette
-    glColor3f(0.53f, 0.81f, 0.98f);
-
     glVertex2f(1280.0f, 250.0f);
     glVertex2f(0.0f, 250.0f);
-
     glEnd();
 }
 
 
-// ============================================================
 // DAYTIME SUN
-// ============================================================
 
 void drawSun()
 {
-    // Warm yellow daytime glow
-    glColor4f(1.0f, 0.90f, 0.20f, 0.10f);
-    drawCircle(640.0f, 550.0f, 100.0f, 60);
+    // Sun fades out as night arrives.
+    float sunAlpha = 1.0f - nightAmount;
 
-    glColor4f(1.0f, 0.92f, 0.25f, 0.18f);
-    drawCircle(640.0f, 550.0f, 75.0f, 60);
+    glColor4f(1.0f, 0.90f, 0.20f, 0.10f * sunAlpha);
+    drawCircle(640.0f, 420.0f, 100.0f, 60);
 
-    glColor3f(1.0f, 0.75f, 0.05f);
-    drawCircle(640.0f, 550.0f, 50.0f, 60);
+    glColor4f(1.0f, 0.92f, 0.25f, 0.18f * sunAlpha);
+    drawCircle(640.0f, 420.0f, 75.0f, 60);
+
+    glColor4f(1.0f, 0.75f, 0.05f, sunAlpha);
+    drawCircle(640.0f, 420.0f, 50.0f, 60);
 }
 
 
-// ============================================================
+// NIGHT MOON
+
+void drawMoon()
+{
+    if (nightAmount <= 0.01f)
+        return;
+
+    // Moon fades in during the transition.
+    glColor4f(0.95f, 0.96f, 1.0f, 0.85f * nightAmount);
+    drawCircle(1030.0f, 560.0f, 38.0f, 50);
+
+    // Soft moon glow.
+    glColor4f(0.80f, 0.86f, 1.0f, 0.08f * nightAmount);
+    drawCircle(1030.0f, 560.0f, 65.0f, 50);
+}
+
+
 // CLOUDS
-// ============================================================
 
 void drawCloud(float x, float y, float scale)
 {
@@ -146,7 +165,6 @@ void drawCloud(float x, float y, float scale)
 
 void drawClouds()
 {
-    // Move every cloud to the right and wrap it around the screen.
     float x1 = fmod(630.0f + cloudMove, 1450.0f) - 150.0f;
     float x2 = fmod(300.0f + cloudMove, 1450.0f) - 150.0f;
     float x3 = fmod(1000.0f + cloudMove, 1450.0f) - 150.0f;
@@ -159,13 +177,11 @@ void drawClouds()
 }
 
 
-// ============================================================
 // TREE
-// ============================================================
 
 void drawTree(float x, float y, float scale)
 {
-    // ---------------- TRUNK ----------------
+    //  TRUNK
 
     glColor3f(0.20f, 0.12f, 0.05f);
 
@@ -183,7 +199,7 @@ void drawTree(float x, float y, float scale)
     glEnd();
 
 
-    // ---------------- BRANCHES ----------------
+    //  BRANCHES
 
     glLineWidth(5.0f);
 
@@ -200,7 +216,7 @@ void drawTree(float x, float y, float scale)
     glEnd();
 
 
-    // ---------------- LEAVES ----------------
+    //  LEAVES
 
     glColor3f(0.12f, 0.34f, 0.12f);
 
@@ -242,9 +258,7 @@ void drawTree(float x, float y, float scale)
 }
 
 
-// ============================================================
 // DISTANT TREES
-// ============================================================
 
 void drawBackgroundTrees()
 {
@@ -265,9 +279,7 @@ void drawBackgroundTrees()
 }
 
 
-// ============================================================
 // RIVER
-// ============================================================
 
 void drawRiver()
 {
@@ -310,9 +322,7 @@ void drawRiver()
 }
 
 
-// ============================================================
 // SHORELINE
-// ============================================================
 
 void drawShoreline()
 {
@@ -330,9 +340,7 @@ void drawShoreline()
 }
 
 
-// ============================================================
 // TREES
-// ============================================================
 
 void drawTreesAndShoreline()
 {
@@ -355,13 +363,10 @@ void drawTreesAndShoreline()
 }
 
 
-// ============================================================
 // BRIDGE
-// ============================================================
 
 void drawBridge()
 {
-    // Full-width bridge deck.
     glColor3f(0.45f, 0.45f, 0.48f);
 
     glBegin(GL_QUADS);
@@ -371,7 +376,6 @@ void drawBridge()
     glVertex2f(0.0f, 390.0f);
     glEnd();
 
-    // Light-colored upper edge.
     glColor3f(0.65f, 0.65f, 0.68f);
     glLineWidth(7.0f);
 
@@ -380,7 +384,6 @@ void drawBridge()
     glVertex2f(1280.0f, 420.0f);
     glEnd();
 
-    // Supports placed regularly under the complete bridge.
     glColor3f(0.60f, 0.60f, 0.63f);
     glBegin(GL_QUADS);
 
@@ -413,9 +416,7 @@ void drawBridge()
 }
 
 
-// ============================================================
 // WET ROAD
-// ============================================================
 
 void drawWetRoad()
 {
@@ -452,9 +453,7 @@ void drawWetRoad()
 }
 
 
-// ============================================================
 // ROAD REFLECTION
-// ============================================================
 
 void drawWetRoadReflection()
 {
@@ -499,9 +498,7 @@ void drawWetRoadReflection()
 }
 
 
-// ============================================================
 // STREET LIGHTS
-// ============================================================
 
 void drawStreetLights()
 {
@@ -544,9 +541,7 @@ void drawStreetLights()
 }
 
 
-// ============================================================
 // OVERHEAD WIRES
-// ============================================================
 
 void drawOverheadWires()
 {
@@ -566,14 +561,12 @@ void drawOverheadWires()
 }
 
 
-// ============================================================
 // CAR
-// ============================================================
 
 void drawCar(float x, float y, float scale,
              float red, float green, float blue)
 {
-    // ---------------- SHADOW ----------------
+    //  SHADOW
 
     glColor4f(0.0f, 0.0f, 0.0f, 0.45f);
 
@@ -594,7 +587,7 @@ void drawCar(float x, float y, float scale,
     glEnd();
 
 
-    // ---------------- MAIN BODY ----------------
+    //  MAIN BODY
 
     glColor3f(red, green, blue);
 
@@ -619,7 +612,7 @@ void drawCar(float x, float y, float scale,
     glEnd();
 
 
-    // ---------------- ROOF ----------------
+    //  ROOF
 
     glColor3f(red * 0.70f, green * 0.70f, blue * 0.70f);
 
@@ -640,7 +633,7 @@ void drawCar(float x, float y, float scale,
     glEnd();
 
 
-    // ---------------- WINDOWS ----------------
+    //  WINDOWS
 
     glColor3f(0.25f, 0.40f, 0.47f);
 
@@ -676,7 +669,7 @@ void drawCar(float x, float y, float scale,
     glEnd();
 
 
-    // ---------------- WINDOW DIVIDER ----------------
+    //  WINDOW DIVIDER
 
     glColor3f(0.85f, 0.85f, 0.82f);
 
@@ -690,7 +683,7 @@ void drawCar(float x, float y, float scale,
     glEnd();
 
 
-    // ---------------- HEADLIGHT GLOW ----------------
+    //  HEADLIGHT GLOW
 
     glColor4f(1.0f, 0.85f, 0.35f, 0.10f);
 
@@ -700,7 +693,7 @@ void drawCar(float x, float y, float scale,
                25);
 
 
-    // ---------------- HEADLIGHT ----------------
+    //  HEADLIGHT
 
     glColor3f(1.0f, 0.92f, 0.45f);
 
@@ -721,7 +714,7 @@ void drawCar(float x, float y, float scale,
     glEnd();
 
 
-    // ---------------- TAIL LIGHT ----------------
+    // TAIL LIGHT
 
     glColor3f(0.9f, 0.02f, 0.02f);
 
@@ -742,7 +735,7 @@ void drawCar(float x, float y, float scale,
     glEnd();
 
 
-    // ---------------- WHEELS ----------------
+    //  WHEELS
 
     glColor3f(0.005f, 0.005f, 0.005f);
 
@@ -776,9 +769,7 @@ void drawCar(float x, float y, float scale,
 
 
 
-// ============================================================
 // RAIN / ATMOSPHERIC LINES
-// ============================================================
 
 void drawRain()
 {
@@ -801,9 +792,7 @@ void drawRain()
 }
 
 
-// ============================================================
 // BRIDGE CARS
-// ============================================================
 
 float bridgeRoadY(float x)
 {
@@ -833,9 +822,7 @@ void drawBridgeCars()
 }
 
 
-// ============================================================
 // DISPLAY
-// ============================================================
 
 void display()
 {
@@ -844,22 +831,19 @@ void display()
     glLoadIdentity();
 
 
-    // --------------------------------------------------------
     // BACKGROUND
-    // --------------------------------------------------------
 
     drawBackgroundSky();
 
     drawSun();
+    drawMoon();
 
     drawClouds();
 
     drawBackgroundTrees();
 
 
-    // --------------------------------------------------------
     // BRIDGE + WATER
-    // --------------------------------------------------------
 
     drawRiver();
 
@@ -867,55 +851,59 @@ void display()
     drawBridgeCars();
 
 
-    // --------------------------------------------------------
     // SHORE + TREES
-    // --------------------------------------------------------
 
     drawTreesAndShoreline();
 
 
-    // --------------------------------------------------------
     // ROAD
-    // --------------------------------------------------------
 
     drawWetRoad();
 
     drawWetRoadReflection();
 
 
-    // --------------------------------------------------------
-    // CAR REFLECTIONS
-    // --------------------------------------------------------
-
-
-
-
-    // --------------------------------------------------------
     // CARS
-    // --------------------------------------------------------
 
-    drawCar(carX1, 115.0f, 1.0f, 0.72f, 0.025f, 0.025f);
+    // MAIN ROAD CARS
 
-    drawCar(carX2, 135.0f, 0.70f, 0.72f, 0.025f, 0.025f);
+    // Car 1: RED, moving right
+    drawCar(carX1, 165.0f, 0.72f, 0.85f, 0.08f, 0.08f);
 
-    drawCar(carX3, 155.0f, 0.55f, 0.72f, 0.025f, 0.025f);
+    // Car 2: BLUE, moving left (mirror the car)
+    glPushMatrix();
+    glTranslatef(carX2, 70.0f, 0.0f);
+    glScalef(-1.0f, 1.0f, 1.0f);
+    drawCar(0.0f, 0.0f, 0.62f, 0.08f, 0.35f, 0.90f);
+    glPopMatrix();
+
+    // Car 3: GREEN, moving right
+    drawCar(carX3, 165.0f, 0.55f, 0.10f, 0.75f, 0.20f);
 
 
-    // --------------------------------------------------------
     // STREET LIGHTS
-    // --------------------------------------------------------
 
     drawStreetLights();
 
 
-    // --------------------------------------------------------
     // WIRES
-    // --------------------------------------------------------
 
     drawOverheadWires();
 
+    // NIGHT ATMOSPHERE
+    if (nightAmount > 0.0f)
+    {
+        glColor4f(0.015f, 0.025f, 0.10f, 0.58f * nightAmount);
 
-    // --------------------------------------------------------
+        glBegin(GL_QUADS);
+        glVertex2f(0.0f, 720.0f);
+        glVertex2f(1280.0f, 720.0f);
+        glVertex2f(1280.0f, 0.0f);
+        glVertex2f(0.0f, 0.0f);
+        glEnd();
+    }
+
+
     // The scene is daytime, so rain is not drawn.
 
 
@@ -923,49 +911,34 @@ void display()
 }
 
 
-// ============================================================
 // UPDATE / ANIMATION
-// ============================================================
 
 void update(int value)
 {
-    // --------------------------------------------------------
-    // CAR 1
-    // --------------------------------------------------------
+    // MAIN ROAD CAR ANIMATION
 
     carX1 += carSpeed1;
 
-    if (carX1 > 1450.0f)
+    if (carX1 > 1500.0f)
     {
-        carX1 = -250.0f;
+        carX1 = -300.0f;
     }
 
+    carX2 -= carSpeed2;
 
-    // --------------------------------------------------------
-    // CAR 2
-    // --------------------------------------------------------
-
-    carX2 += carSpeed2;
-
-    if (carX2 > 1450.0f)
+    if (carX2 < -300.0f)
     {
-        carX2 = -250.0f;
+        carX2 = 1500.0f;
     }
-
-
-    // --------------------------------------------------------
-    // CAR 3
-    // --------------------------------------------------------
 
     carX3 += carSpeed3;
 
-    if (carX3 > 1450.0f)
+    if (carX3 > 1500.0f)
     {
-        carX3 = -250.0f;
+        carX3 = -650.0f;
     }
 
 
-    // --------------------------------------------------------
     // BRIDGE CAR ANIMATION
     bridgeCarX1 += bridgeCarSpeed1;
     bridgeCarX2 += bridgeCarSpeed2;
@@ -976,8 +949,23 @@ void update(int value)
     if (bridgeCarX3 > 1400.0f) bridgeCarX3 = -120.0f;
 
 
+    // DAY / NIGHT TRANSITION
+    nightAmount += nightDirection * nightSpeed;
+
+    if (nightAmount >= 1.0f)
+    {
+        nightAmount = 1.0f;
+        nightDirection = -1.0f;
+    }
+
+    if (nightAmount <= 0.0f)
+    {
+        nightAmount = 0.0f;
+        nightDirection = 1.0f;
+    }
+
+
     // WATER ANIMATION
-    // --------------------------------------------------------
 
     waterMove += 1.0f;
 
@@ -1001,9 +989,7 @@ void update(int value)
 }
 
 
-// ============================================================
 // INITIALIZATION
-// ============================================================
 
 void init()
 {
@@ -1049,9 +1035,7 @@ void init()
 }
 
 
-// ============================================================
 // MAIN
-// ============================================================
 
 int main(int argc, char** argv)
 {
@@ -1072,7 +1056,7 @@ int main(int argc, char** argv)
 
 
     glutCreateWindow(
-        "Daylight Bridge - Friend Color Style"
+        "Daylight Bridge"
     );
 
 
